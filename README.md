@@ -3,7 +3,13 @@
 
 This is the implementation for [Efficient Training of Audio Transformers with Patchout](https://arxiv.org/abs/2110.05069)
 
+Pathout significantly reduces the training time and GPU memory requirements to train transformers on audio spectrograms, while improving their performance.
 
+<p align="center"><img src="https://github.com/kkoutini/PaSST/blob/main/figures/speed_mem_map.png?raw=true" alt="Illustration of AST." width="300"/></p>
+
+Pathout works by dropping out some of the input patches during training. In either a unstructured way, or complete time-frames or frequency bins.  
+
+<p align="center"><img src="https://github.com/kkoutini/PaSST/blob/main/figures/passt_diag.png?raw=true" alt="Illustration of AST." width="300"/></p>
 
 
 # Setting up the experiments environment
