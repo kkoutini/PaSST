@@ -160,7 +160,11 @@ default_cfgs = {
             '/vit_base_patch16_224_1k_miil_84_4.pth',
         mean=(0, 0, 0), std=(1, 1, 1), crop_pct=0.875, interpolation='bilinear',
     ),
-
+    # PaSST
+    'passt_s_swa_p16_128_ap476': _cfg(
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.1-audioset/passt-s-f128-p16-s10-ap.476-swa.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
 }
 
 
@@ -301,7 +305,7 @@ class PaSST(nn.Module):
 
     """
 
-    def __init__(self, u_patchout=0, s_patchout_t=0, s_patchout_f=0, img_size=224, patch_size=16, stride=16, in_chans=3, num_classes=1000, embed_dim=768, depth=12,
+    def __init__(self, u_patchout=0, s_patchout_t=0, s_patchout_f=0, img_size=(128, 998), patch_size=16, stride=16, in_chans=1, num_classes=527, embed_dim=768, depth=12,
                  num_heads=12, mlp_ratio=4., qkv_bias=True, representation_size=None, distilled=False,
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0., embed_layer=PatchEmbed, norm_layer=None,
                  act_layer=None, weight_init=''):
@@ -650,6 +654,16 @@ def deit_base_distilled_patch16_384(pretrained=False, **kwargs):
         'deit_base_distilled_patch16_384', pretrained=pretrained, distilled=True, **model_kwargs)
     return model
 
+def passt_s_swa_p16_128_ap476(pretrained=False, **kwargs):
+    """ DeiT-base distilled model @ 384x384 from paper (https://arxiv.org/abs/2012.12877).
+    ImageNet-1k weights from https://github.com/facebookresearch/deit.
+    """
+    print("\n\n Loading DEIT BASE 384\n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    model = _create_vision_transformer(
+        'passt_s_swa_p16_128_ap476', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
 
 from ba3l.ingredients.ingredient import Ingredient
 
@@ -659,7 +673,7 @@ model_ing.add_config(instance_cmd="get_model")
 
 
 @model_ing.command
-def fix_embedding_layer(model, embed="overlap"):
+def fix_embedding_layer(model, embed="default"):
     if embed == "default":
         return model
     if embed == "overlap":
@@ -672,10 +686,9 @@ def fix_embedding_layer(model, embed="overlap"):
 
 
 @model_ing.command
-def get_model(arch="deit_bd_p16_384", pretrained=True, n_classes=527, in_channels=1, fstride=10,
+def get_model(arch="passt_s_swa_p16_128_ap476", pretrained=True, n_classes=527, in_channels=1, fstride=10,
               tstride=10,
               input_fdim=128, input_tdim=998, u_patchout=0, s_patchout_t=0, s_patchout_f=0,
-              audioset_pretrain=False,
               ):
     """
     :param arch: Base ViT or Deit architecture
@@ -693,16 +706,18 @@ def get_model(arch="deit_bd_p16_384", pretrained=True, n_classes=527, in_channel
     :return:
 
     """
-    model = None
+    model_func = None
     input_size = (input_fdim, input_tdim)
     stride = (fstride, tstride)
     if arch == "deit_bd_p16_384":
-        model = deit_base_distilled_patch16_384(pretrained=pretrained, num_classes=n_classes, in_chans=in_channels,
+        model_func = deit_base_distilled_patch16_384
+    elif arch == "passt_s_swa_p16_128_ap476":
+        model_func = passt_s_swa_p16_128_ap476
+    if model_func is None:
+        raise RuntimeError(f"Unknown model {arch}")
+    model = model_func(pretrained=pretrained, num_classes=n_classes, in_chans=in_channels,
                                                 img_size=input_size, stride=stride, u_patchout=u_patchout,
                                                 s_patchout_t=s_patchout_t, s_patchout_f=s_patchout_f)
-
-    if model is None:
-        raise RuntimeError(f"Unknown model {arch}")
     model = fix_embedding_layer(model)
     print(model)
     return model
