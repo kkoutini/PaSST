@@ -709,9 +709,9 @@ def get_model(arch="passt_s_swa_p16_128_ap476", pretrained=True, n_classes=527, 
     model_func = None
     input_size = (input_fdim, input_tdim)
     stride = (fstride, tstride)
-    if arch == "deit_bd_p16_384":
+    if arch == "passt_deit_bd_p16_384":
         model_func = deit_base_distilled_patch16_384
-    elif arch == "passt_s_swa_p16_128_ap476":
+    elif arch == "passt_s_swa_p16_128_ap476": # pretrained
         model_func = passt_s_swa_p16_128_ap476
     if model_func is None:
         raise RuntimeError(f"Unknown model {arch}")
