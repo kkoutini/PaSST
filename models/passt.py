@@ -166,35 +166,35 @@ default_cfgs = {
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_swa_p16_128_ap4761': _cfg(
-        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s10-ap.4761-swa.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s10-ap.4761-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_p16_128_ap472': _cfg(
-        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s10-ap.472.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s10-ap.472.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_p16_s16_128_ap468': _cfg(
-        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s16-ap.468.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s16-ap.468.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_swa_p16_s16_128_ap473': _cfg(
-        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s16-ap.473-swa.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s16-ap.473-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_swa_p16_s14_128_ap471': _cfg(
-        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s14-ap.471-swa.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s14-ap.471-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_p16_s14_128_ap469': _cfg(
-        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s14-ap.469.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s14-ap.469.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_swa_p16_s12_128_ap473': _cfg(
-        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s12-ap.473-swa.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s12-ap.473-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_p16_s12_128_ap470': _cfg(
-        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s12-ap.470.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s12-ap.470.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
 }
