@@ -29,8 +29,7 @@ ex = Experiment("audioset")
 # define datasets and loaders
 ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=12,
                           num_workers=16, shuffle=None, dataset=CMD("/basedataset.get_full_training_set"),
-                                      sampler=CMD("/basedataset.get_ft_weighted_sampler"))
-
+                          sampler=CMD("/basedataset.get_ft_weighted_sampler"))
 
 get_validate_loader = ex.datasets.test.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn),
                                             validate=True, batch_size=20, num_workers=16,
@@ -39,7 +38,7 @@ get_validate_loader = ex.datasets.test.iter(DataLoader, static_args=dict(worker_
 
 @ex.config
 def default_conf():
-    cmd = " ".join(sys.argv)
+    cmd = " ".join(sys.argv) # command line arguments
     saque_cmd = os.environ.get("SAQUE_CMD", "").strip()
     saque_id = os.environ.get("SAQUE_ID", "").strip()
     slurm_job_id = os.environ.get("SLURM_JOB_ID", "").strip()
@@ -48,18 +47,19 @@ def default_conf():
                                                                                                "").strip()
     process_id = os.getpid()
     models = {
-        "net": DynamicIngredient("models.passt.model_ing", n_classes=527,s_patchout_t=40,s_patchout_f=4),
+        "net": DynamicIngredient("models.passt.model_ing", arch="passt_deit_bd_p16_384", n_classes=527, s_patchout_t=40,
+                                 s_patchout_f=4), # network config
         "mel": DynamicIngredient("models.preprocess.model_ing",
-                                           instance_cmd="AugmentMelSTFT",
-                                           n_mels=128, sr=32000, win_length=800, hopsize=320, n_fft=1024, freqm=48,
-                                           timem=192,
-                                           htk=False, fmin=0.0, fmax=None, norm=1, fmin_aug_range=10,
-                                           fmax_aug_range=2000)
+                                 instance_cmd="AugmentMelSTFT",
+                                 n_mels=128, sr=32000, win_length=800, hopsize=320, n_fft=1024, freqm=48,
+                                 timem=192,
+                                 htk=False, fmin=0.0, fmax=None, norm=1, fmin_aug_range=10,
+                                 fmax_aug_range=2000)
     }
     basedataset = DynamicIngredient("audioset.dataset.dataset", wavmix=1)
     trainer = dict(max_epochs=130, gpus=1, weights_summary='full', benchmark=True, num_sanity_val_steps=0,
                    reload_dataloaders_every_epoch=True)
-    lr = 0.00002
+    lr = 0.00002 # learning rate
     use_mixup = True
     mixup_alpha = 0.3
 
@@ -299,7 +299,6 @@ def model_speed_test(_run, _config, _log, _rnd, _seed, speed_test_batch_size=100
     @param speed_test_batch_size: the batch size during the test
     @return:
     '''
-
 
     modul = M(ex)
     modul = modul.cuda()

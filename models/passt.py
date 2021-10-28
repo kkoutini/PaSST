@@ -165,6 +165,38 @@ default_cfgs = {
         url='https://github.com/kkoutini/PaSST/releases/download/v0.0.1-audioset/passt-s-f128-p16-s10-ap.476-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_s_swa_p16_128_ap4761': _cfg(
+        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s10-ap.4761-swa.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_s_p16_128_ap472': _cfg(
+        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s10-ap.472.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_s_p16_s16_128_ap468': _cfg(
+        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s16-ap.468.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_s_swa_p16_s16_128_ap473': _cfg(
+        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s16-ap.473-swa.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_s_swa_p16_s14_128_ap471': _cfg(
+        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s14-ap.471-swa.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_s_p16_s14_128_ap469': _cfg(
+        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s14-ap.469.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_s_swa_p16_s12_128_ap473': _cfg(
+        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s12-ap.473-swa.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_s_p16_s12_128_ap470': _cfg(
+        url='http://misc.cp.jku.at/local/passt-s-f128-p16-s12-ap.470.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
 }
 
 
@@ -305,7 +337,8 @@ class PaSST(nn.Module):
 
     """
 
-    def __init__(self, u_patchout=0, s_patchout_t=0, s_patchout_f=0, img_size=(128, 998), patch_size=16, stride=16, in_chans=1, num_classes=527, embed_dim=768, depth=12,
+    def __init__(self, u_patchout=0, s_patchout_t=0, s_patchout_f=0, img_size=(128, 998), patch_size=16, stride=16,
+                 in_chans=1, num_classes=527, embed_dim=768, depth=12,
                  num_heads=12, mlp_ratio=4., qkv_bias=True, representation_size=None, distilled=False,
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0., embed_layer=PatchEmbed, norm_layer=None,
                  act_layer=None, weight_init=''):
@@ -420,7 +453,7 @@ class PaSST(nn.Module):
             self.head_dist = nn.Linear(self.embed_dim, self.num_classes) if num_classes > 0 else nn.Identity()
 
     def forward_features(self, x):
-        global first_RUN # not jit friendly? use trace instead
+        global first_RUN  # not jit friendly? use trace instead
         x = self.patch_embed(x)  # [b, e, f, t]
         B_dim, E_dim, F_dim, T_dim = x.shape  # slow
         if first_RUN: print(" patch_embed : ", x.shape)
@@ -482,7 +515,7 @@ class PaSST(nn.Module):
         x = self.forward_features(x)
 
         if self.head_dist is not None:
-            features =  (x[0]+x[1])/2
+            features = (x[0] + x[1]) / 2
             if first_RUN: print("forward_features", features.size())
             x = self.head(features)
             if first_RUN: print("head", x.size())
@@ -654,14 +687,121 @@ def deit_base_distilled_patch16_384(pretrained=False, **kwargs):
         'deit_base_distilled_patch16_384', pretrained=pretrained, distilled=True, **model_kwargs)
     return model
 
+
 def passt_s_swa_p16_128_ap476(pretrained=False, **kwargs):
-    """ DeiT-base distilled model @ 384x384 from paper (https://arxiv.org/abs/2012.12877).
-    ImageNet-1k weights from https://github.com/facebookresearch/deit.
+    """ PaSST pre-trained on AudioSet
     """
-    print("\n\n Loading DEIT BASE 384\n\n")
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 10 structured patchout mAP=476 SWA \n\n")
     model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (10, 10):
+        warnings.warn(
+            f"This model was pre-trained with strides {(10, 10)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
     model = _create_vision_transformer(
         'passt_s_swa_p16_128_ap476', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_swa_p16_128_ap4761(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 10 structured patchout mAP=4763 SWA \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (10, 10):
+        warnings.warn(
+            f"This model was pre-trained with strides {(10, 10)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_s_swa_p16_128_ap4761', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_p16_128_ap472(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 10 structured patchout mAP=472 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (10, 10):
+        warnings.warn(
+            f"This model was pre-trained with strides {(10, 10)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_s_p16_128_ap472', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_p16_s12_128_ap470(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 12 structured patchout mAP=472 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (12, 12):
+        warnings.warn(
+            f"This model was pre-trained with strides {(12, 12)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_s_p16_s12_128_ap470', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_swa_p16_s12_128_ap473(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 12 structured patchout mAP=472 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (12, 12):
+        warnings.warn(
+            f"This model was pre-trained with strides {(12, 12)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_s_swa_p16_s12_128_ap473', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_p16_s14_128_ap469(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 14 structured patchout mAP=472 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (14, 14):
+        warnings.warn(
+            f"This model was pre-trained with strides {(14, 14)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_s_p16_s14_128_ap469', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_swa_p16_s14_128_ap471(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 14 structured patchout mAP=472 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (14, 14):
+        warnings.warn(
+            f"This model was pre-trained with strides {(14, 14)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_s_swa_p16_s14_128_ap471', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_swa_p16_s16_128_ap473(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 16 structured patchout mAP=472 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (16, 16):
+        warnings.warn(
+            f"This model was pre-trained with strides {(16, 16)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_s_swa_p16_s16_128_ap473', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_p16_s16_128_ap468(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST pre-trained on AudioSet Patch 16 stride 16 structured patchout mAP=472 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (16, 16):
+        warnings.warn(
+            f"This model was pre-trained with strides {(16, 16)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_s_p16_s16_128_ap468', pretrained=pretrained, distilled=True, **model_kwargs)
     return model
 
 
@@ -681,8 +821,6 @@ def fix_embedding_layer(model, embed="default"):
     if embed == "am_keepconv":
         model.patch_embed = PatchEmbedAdaptiveMeanKeepConv(replace=model.patch_embed)
     return model
-
-
 
 
 @model_ing.command
@@ -709,15 +847,59 @@ def get_model(arch="passt_s_swa_p16_128_ap476", pretrained=True, n_classes=527, 
     model_func = None
     input_size = (input_fdim, input_tdim)
     stride = (fstride, tstride)
-    if arch == "passt_deit_bd_p16_384":
+    if arch == "passt_deit_bd_p16_384":  # base deit
         model_func = deit_base_distilled_patch16_384
-    elif arch == "passt_s_swa_p16_128_ap476": # pretrained
+    elif arch == "passt_s_swa_p16_128_ap476":  # pretrained
         model_func = passt_s_swa_p16_128_ap476
+    elif arch == "passt_s_swa_p16_128_ap4761":
+        model_func = passt_s_swa_p16_128_ap4761
+    elif arch == "passt_s_p16_128_ap472":
+        model_func = passt_s_p16_128_ap472
+    elif arch == "passt_s_p16_s16_128_ap468":
+        model_func = passt_s_p16_s16_128_ap468
+    elif arch == "passt_s_swa_p16_s16_128_ap473":
+        model_func = passt_s_swa_p16_s16_128_ap473
+    elif arch == "passt_s_swa_p16_s14_128_ap471":
+        model_func = passt_s_swa_p16_s14_128_ap471
+    elif arch == "passt_s_p16_s14_128_ap469":
+        model_func = passt_s_p16_s14_128_ap469
+    elif arch == "passt_s_swa_p16_s12_128_ap473":
+        model_func = passt_s_swa_p16_s12_128_ap473
+    elif arch == "passt_s_p16_s12_128_ap470":
+        model_func = passt_s_p16_s12_128_ap470
+
     if model_func is None:
         raise RuntimeError(f"Unknown model {arch}")
     model = model_func(pretrained=pretrained, num_classes=n_classes, in_chans=in_channels,
-                                                img_size=input_size, stride=stride, u_patchout=u_patchout,
-                                                s_patchout_t=s_patchout_t, s_patchout_f=s_patchout_f)
+                       img_size=input_size, stride=stride, u_patchout=u_patchout,
+                       s_patchout_t=s_patchout_t, s_patchout_f=s_patchout_f)
     model = fix_embedding_layer(model)
+    print(model)
+    return model
+
+
+class EnsembelerModel(nn.Module):
+    def __init__(self, models):
+        super(EnsembelerModel, self).__init__()
+        self.models = nn.ModuleList(models)
+
+    def forward(self, x):
+        # ModuleList can act as an iterable, or be indexed using ints
+        all_out = None
+        for i, m in enumerate(self.models):
+            out, _ = m(x)
+            if all_out is None:
+                all_out = out
+            else:
+                all_out = out + all_out
+        all_out = all_out / len(self.models)
+        return all_out, all_out
+
+
+@model_ing.command
+def get_ensemble_model(arch_list=[]):
+    # arch_list = [(passt_s_swa_p16_128_ap476,fstride,tstride)]
+    models_list = [get_model(arch=arch, fstride=fstride, tstride=tstride) for arch, fstride, tstride in arch_list]
+    model = EnsembelerModel(models_list)
     print(model)
     return model

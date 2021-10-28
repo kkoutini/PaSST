@@ -330,7 +330,7 @@ def get_roll_func(axis=1, shift=None, shift_range=50):
 
 
 @dataset.command
-def get_training_set(normalize, roll, wavmix=False, freqm=48, timem= 192,mel_bins=128):
+def get_training_set(normalize, roll, wavmix=False):
     ds = get_base_training_set()
     get_ir_sample()
     if normalize:
@@ -346,7 +346,7 @@ def get_training_set(normalize, roll, wavmix=False, freqm=48, timem= 192,mel_bin
 
 
 @dataset.command
-def get_full_training_set(normalize, roll, wavmix=False, freqm=48, timem= 192, mel_bins=128):
+def get_full_training_set(normalize, roll, wavmix=False):
     ds = get_base_full_training_set()
     get_ir_sample()
     if normalize:
@@ -362,7 +362,7 @@ def get_full_training_set(normalize, roll, wavmix=False, freqm=48, timem= 192, m
 
 
 @dataset.command
-def get_test_set(normalize, roll, mel_bins=128):
+def get_test_set(normalize):
     ds = get_base_test_set()
     if normalize:
         print("normalized test!")
