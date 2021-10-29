@@ -150,18 +150,49 @@ def add_configs(ex):
                                      )
         }
     @ex.named_config
+    def ensemble_4():
+        'use ensemble of PaSST models pretrained on Audioset  with different strides mAP=.4926'
+        # test with: python ex_audioset.py evaluate_only with  trainer.precision=16 ensemble_many
+        models = {
+            "net": DynamicIngredient("models.passt.model_ing", arch="ensemble_many", fstride=None,
+                                     tstride=None, instance_cmd="get_ensemble_model",
+                                     # don't call get_model but rather get_ensemble_model
+                                     arch_list=[
+                                         ("passt_s_swa_p16_128_ap476", 10, 10),
+                                         ("passt_s_swa_p16_s12_128_ap473", 12, 12),
+                                         ("passt_s_swa_p16_s14_128_ap471", 14, 14),
+                                         ("passt_s_swa_p16_s16_128_ap473", 16, 16),
+                                                ]
+                                     )
+        }
+    @ex.named_config
+    def ensemble_5():
+        'use ensemble of PaSST models pretrained on Audioset  with different strides mAP=.49459'
+        # test with: python ex_audioset.py evaluate_only with  trainer.precision=16 ensemble_many
+        models = {
+            "net": DynamicIngredient("models.passt.model_ing", arch="ensemble_many", fstride=None,
+                                     tstride=None, instance_cmd="get_ensemble_model",
+                                     # don't call get_model but rather get_ensemble_model
+                                     arch_list=[
+                                         ("passt_s_swa_p16_128_ap476", 10, 10),
+                                         ("passt_s_swa_p16_128_ap4761", 10, 10),
+                                         ("passt_s_swa_p16_s12_128_ap473", 12, 12),
+                                         ("passt_s_swa_p16_s14_128_ap471", 14, 14),
+                                         ("passt_s_swa_p16_s16_128_ap473", 16, 16),
+                                                ]
+                                     )
+        }
+    @ex.named_config
     def ensemble_s16_14():
-        'use ensemble of PaSST models pretrained on Audioset  with stride 16 and 14 mAP=.4863'
+        'use ensemble of two PaSST models pretrained on Audioset  with stride 16 and 14 mAP=.48579'
         # test with: python ex_audioset.py evaluate_only with  trainer.precision=16 ensemble_s16_14
         models = {
             "net": DynamicIngredient("models.passt.model_ing", arch="ensemble_s16", fstride=None,
                                      tstride=None, instance_cmd="get_ensemble_model",
                                      # don't call get_model but rather get_ensemble_model
                                      arch_list=[
-                                         ("passt_s_p16_s14_128_ap469", 14, 14),
                                          ("passt_s_swa_p16_s14_128_ap471", 14, 14),
                                          ("passt_s_swa_p16_s16_128_ap473", 16, 16),
-                                         ("passt_s_p16_s16_128_ap468", 16, 16),
                                                 ]
                                      )
         }

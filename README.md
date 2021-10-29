@@ -178,10 +178,10 @@ A large ensemble giving `mAP=.4956`
 ```shell
 python ex_audioset.py evaluate_only with  trainer.precision=16 ensemble_many
 ```
-An ensemble of models with `stride=10` giving `mAP=.4864`
+An ensemble of 2 models with `stride=14` and `stride=16` giving `mAP=.4864`
 ```shell
-python ex_audioset.py evaluate_only with  trainer.precision=16 ensemble_s10
+python ex_audioset.py evaluate_only with  trainer.precision=16 ensemble_s16_14
 ```
-
+As well as other ensembles `ensemble_4`, `ensemble_5`
 # Contact
 The repo will be updated, in the mean time if you have any questions or problems feel free to open an issue on GitHub, or contact the authors directly.
