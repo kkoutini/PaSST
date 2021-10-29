@@ -173,12 +173,12 @@ Using the framework, you can evaluate this model using:
 python ex_audioset.py evaluate_only with passt_s_swa_p16_s16_128_ap473
 ```
 
-Two ensemble of these models are provided as well:
+Ensemble of these models are provided as well:
 A large ensemble giving `mAP=.4956`
 ```shell
 python ex_audioset.py evaluate_only with  trainer.precision=16 ensemble_many
 ```
-An ensemble of 2 models with `stride=14` and `stride=16` giving `mAP=.4864`
+An ensemble of 2 models with `stride=14` and `stride=16` giving `mAP=.4858`
 ```shell
 python ex_audioset.py evaluate_only with  trainer.precision=16 ensemble_s16_14
 ```
