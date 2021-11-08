@@ -108,8 +108,6 @@ class M(Ba3lModule):
         # in case we need embedings for the DA
         self.net.return_embed = True
         self.dyn_norm = self.config.dyn_norm
-        self.freq_mask = self.config.freq_mask
-        self.time_mask = self.config.time_mask
         self.do_swa = False
 
         self.distributed_mode = self.config.trainer.num_nodes > 1
@@ -142,14 +140,6 @@ class M(Ba3lModule):
 
         orig_x = x
         batch_size = len(y)
-        if self.freq_mask:
-            maxf = x.shape[2]
-            msk = torch.randint(0, maxf, (self.freq_mask,), device=x.device).long()
-            x.index_fill_(dim=2, index=msk, value=0.)
-        if self.time_mask:
-            maxf = x.shape[3]
-            msk = torch.randint(0, maxf, (self.time_mask,), device=x.device).long()
-            x.index_fill_(dim=3, index=msk, value=0.)
 
         rn_indices, lam = None, None
         if self.use_mixup:
