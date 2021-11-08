@@ -150,7 +150,7 @@ Multi-gpu training can be enabled by setting the environment variable `DDP`, for
 
 
 # Pre-trained models
-Please check the [releases page](releases/), to download pre-trained models. 
+Please check the [releases page](https://github.com/kkoutini/PaSST/releases/), to download pre-trained models. 
 In general, you can get a pretrained model on Audioset using 
 ```python
 from models.passt import get_model
