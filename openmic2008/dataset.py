@@ -32,7 +32,7 @@ def default_config():
     subsample = False  # subsample squares from the dataset
     roll = True  # apply roll augmentation
     fold = 1
-    base_dir = "/share/rk7/shared/audioset_hdf5s/"  # base directory of the dataset as downloaded
+    base_dir = "audioset_hdf5s/"  # base directory of the dataset as downloaded
     if LMODE:
         base_dir = "/system/user/publicdata/CP/audioset/audioset_hdf5s/"
     openmic_train_hdf5 = base_dir + "mp3/openmic_train.csv_mp3.hdf"
