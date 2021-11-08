@@ -27,7 +27,7 @@ ex = Experiment("esc50")
 # DDP=2 python ex_esc50.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "ESC50 PaSST base"
 
 # define datasets and loaders
-ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=6,
+ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=12,
                           num_workers=16, shuffle=None, dataset=CMD("/basedataset.get_training_set"),
                           )
 
@@ -47,11 +47,11 @@ def default_conf():
                                                                                                "").strip()
     process_id = os.getpid()
     models = {
-        "net": DynamicIngredient("models.passt.model_ing", n_classes=50, s_patchout_t=40, s_patchout_f=4),
+        "net": DynamicIngredient("models.passt.model_ing", n_classes=50, s_patchout_t=10, s_patchout_f=3),
         "mel": DynamicIngredient("models.preprocess.model_ing",
                                  instance_cmd="AugmentMelSTFT",
                                  n_mels=128, sr=32000, win_length=800, hopsize=320, n_fft=1024, freqm=48,
-                                 timem=192,
+                                 timem=80,
                                  htk=False, fmin=0.0, fmax=None, norm=1, fmin_aug_range=10,
                                  fmax_aug_range=2000)
     }
