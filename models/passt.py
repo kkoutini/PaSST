@@ -459,7 +459,11 @@ class PaSST(nn.Module):
         if first_RUN: print(" patch_embed : ", x.shape)
         # Adding Time/Freq information
         if first_RUN: print(" self.time_new_pos_embed.shape", self.time_new_pos_embed.shape)
-        x = x + self.time_new_pos_embed
+        time_new_pos_embed = self.time_new_pos_embed
+        if x.shape[-1] != time_new_pos_embed.shape[-1]:
+            time_new_pos_embed = time_new_pos_embed[:, :, :, :x.shape[-1]]
+            if first_RUN: print(" CUT time_new_pos_embed.shape", time_new_pos_embed.shape)
+        x = x + time_new_pos_embed
         if first_RUN: print(" self.freq_new_pos_embed.shape", self.freq_new_pos_embed.shape)
         x = x + self.freq_new_pos_embed
 
