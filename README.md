@@ -35,7 +35,7 @@ Now you have an environment named `ba3l`. Now install the forked versions of `sa
 ```shell
 # dependencies
 conda activate ba3l
-pip install -e 'git+https://github.com/kkoutini/ba3l@v0.0.1#egg=ba3l'
+pip install -e 'git+https://github.com/kkoutini/ba3l@v0.0.2#egg=ba3l'
 pip install -e 'git+https://github.com/kkoutini/pytorch-lightning@v0.0.1#egg=pytorch-lightning'
 pip install -e 'git+https://github.com/kkoutini/sacred@v0.0.1#egg=sacred' 
 ```
