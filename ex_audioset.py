@@ -216,6 +216,8 @@ class M(Ba3lModule):
                     net_name + 'ap': torch.as_tensor(average_precision.mean()).cuda(),
                     net_name + 'roc': torch.as_tensor(roc.mean()).cuda(),
                     'step': torch.as_tensor(self.current_epoch).cuda()}
+            torch.save(average_precision, f"ap_perclass_{average_precision.mean()}.pt")
+            print(average_precision)
             self.log_dict(logs, sync_dist=True)
             if self.distributed_mode:
                 allout = self.all_gather(out)
