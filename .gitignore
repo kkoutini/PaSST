@@ -110,3 +110,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+/openmic2008/prepare_scripts/openmic-2018-v1.0.0/
+/openmic2008/prepare_scripts/openmic-2018-v1.0.0.tgz
+/audioset_hdf5s/mp3/openmic_test.csv_mp3.hdf
+/audioset_hdf5s/mp3/openmic_train.csv_mp3.hdf
