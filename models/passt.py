@@ -208,11 +208,11 @@ default_cfgs = {
     'openmic2008_passt_u_f128_p16_s10_ap85_swa': _cfg(
         url='https://github.com/kkoutini/PaSST/releases/download/v0.0.4-openmic/openmic2008.passt-u-f128-p16-s10-ap.85-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 3200), crop_pct=1.0,
-        classifier=('head.1', 'head_dist'), num_classes=527),
+        classifier=('head.1', 'head_dist'), num_classes=20),
     'openmic2008_passt_u_f128_p16_s10_ap85  ': _cfg(
         url='https://github.com/kkoutini/PaSST/releases/download/v0.0.4-openmic/openmic2008.passt-u-f128-p16-s10-ap.85.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 2000), crop_pct=1.0,
-        classifier=('head.1', 'head_dist'), num_classes=527),
+        classifier=('head.1', 'head_dist'), num_classes=20),
 }
 
 
