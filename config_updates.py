@@ -33,6 +33,26 @@ def add_configs(ex):
         }
 
     @ex.named_config
+    def passt_s_20sec():
+        'use PaSST model pretrained on Audioset (with SWA) ap=476; time encodings for up to 20 seconds'
+        # python ex_audioset.py evaluate_only with passt_s_ap476
+        models = {
+            "net": DynamicIngredient("models.passt.model_ing", arch="passt_s_f128_20sec_p16_s10_ap474", fstride=10,
+                                     tstride=10, input_tdim=2000)
+        }
+        basedataset = dict(clip_length=20)
+
+    @ex.named_config
+    def passt_s_30sec():
+        'use PaSST model pretrained on Audioset (with SWA) ap=476; time encodings for up to 30 seconds'
+        # python ex_audioset.py evaluate_only with passt_s_ap476
+        models = {
+            "net": DynamicIngredient("models.passt.model_ing", arch="passt_s_f128_30sec_p16_s10_ap473", fstride=10,
+                                     tstride=10, input_tdim=3000)
+        }
+        basedataset = dict(clip_length=20)
+
+    @ex.named_config
     def passt_s_ap476():
         'use PaSST model pretrained on Audioset (with SWA) ap=476'
         # python ex_audioset.py evaluate_only with passt_s_ap476
@@ -125,9 +145,10 @@ def add_configs(ex):
                                          ("passt_s_swa_p16_128_ap476", 10, 10),
                                          ("passt_s_swa_p16_128_ap4761", 10, 10),
                                          ("passt_s_p16_128_ap472", 10, 10),
-                                                ]
+                                     ]
                                      )
         }
+
     @ex.named_config
     def ensemble_many():
         'use ensemble of PaSST models pretrained on Audioset  with different strides mAP=.4956'
@@ -146,9 +167,10 @@ def add_configs(ex):
                                          ("passt_s_swa_p16_s14_128_ap471", 14, 14),
                                          ("passt_s_swa_p16_s16_128_ap473", 16, 16),
                                          ("passt_s_p16_s16_128_ap468", 16, 16),
-                                                ]
+                                     ]
                                      )
         }
+
     @ex.named_config
     def ensemble_4():
         'use ensemble of PaSST models pretrained on Audioset  with different strides mAP=.4926'
@@ -162,9 +184,10 @@ def add_configs(ex):
                                          ("passt_s_swa_p16_s12_128_ap473", 12, 12),
                                          ("passt_s_swa_p16_s14_128_ap471", 14, 14),
                                          ("passt_s_swa_p16_s16_128_ap473", 16, 16),
-                                                ]
+                                     ]
                                      )
         }
+
     @ex.named_config
     def ensemble_5():
         'use ensemble of PaSST models pretrained on Audioset  with different strides mAP=.49459'
@@ -179,9 +202,10 @@ def add_configs(ex):
                                          ("passt_s_swa_p16_s12_128_ap473", 12, 12),
                                          ("passt_s_swa_p16_s14_128_ap471", 14, 14),
                                          ("passt_s_swa_p16_s16_128_ap473", 16, 16),
-                                                ]
+                                     ]
                                      )
         }
+
     @ex.named_config
     def ensemble_s16_14():
         'use ensemble of two PaSST models pretrained on Audioset  with stride 16 and 14 mAP=.48579'
@@ -193,7 +217,7 @@ def add_configs(ex):
                                      arch_list=[
                                          ("passt_s_swa_p16_s14_128_ap471", 14, 14),
                                          ("passt_s_swa_p16_s16_128_ap473", 16, 16),
-                                                ]
+                                     ]
                                      )
         }
 

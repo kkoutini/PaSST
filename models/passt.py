@@ -205,6 +205,14 @@ default_cfgs = {
         url='https://github.com/kkoutini/PaSST/releases/download/v0.0.3-audioset/passt-s-f128-stfthop160-p16-s10-ap.473-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 2000), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt-s-f128-20sec-p16-s10-ap474-swa': _cfg(
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.3-audioset/passt-s-f128-20sec-p16-s10-ap.474-swa.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 2000), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt-s-f128-30sec-p16-s10-ap473-swa': _cfg(
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.3-audioset/passt-s-f128-30sec-p16-s10-ap.473-swa.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 3000), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
     'openmic2008_passt_u_f128_p16_s10_ap85_swa': _cfg(
         url='https://github.com/kkoutini/PaSST/releases/download/v0.0.4-openmic/openmic2008.passt-u-f128-p16-s10-ap.85-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 3200), crop_pct=1.0,
@@ -476,9 +484,19 @@ class PaSST(nn.Module):
         # Adding Time/Freq information
         if first_RUN: print(" self.time_new_pos_embed.shape", self.time_new_pos_embed.shape)
         time_new_pos_embed = self.time_new_pos_embed
-        if x.shape[-1] != time_new_pos_embed.shape[-1]:
-            time_new_pos_embed = time_new_pos_embed[:, :, :, :x.shape[-1]]
+        if x.shape[-1] < time_new_pos_embed.shape[-1]:
+            if self.training:
+                toffset = torch.randint(1 + time_new_pos_embed.shape[-1] - x.shape[-1], (1,)).item()
+                if first_RUN: print(f" CUT with randomoffset={toffset} time_new_pos_embed.shape",
+                                    time_new_pos_embed.shape)
+                time_new_pos_embed = time_new_pos_embed[:, :, :, toffset:toffset + x.shape[-1]]
+            else:
+                time_new_pos_embed = time_new_pos_embed[:, :, :, :x.shape[-1]]
             if first_RUN: print(" CUT time_new_pos_embed.shape", time_new_pos_embed.shape)
+        else:
+            warnings.warn(
+                f"the patches shape:{x.shape} are larger than the expected time encodings {time_new_pos_embed.shape}, x will be cut")
+            x = x[:, :, :, :time_new_pos_embed.shape[-1]]
         x = x + time_new_pos_embed
         if first_RUN: print(" self.freq_new_pos_embed.shape", self.freq_new_pos_embed.shape)
         x = x + self.freq_new_pos_embed
@@ -760,6 +778,22 @@ def passt_s_p16_s12_128_ap470(pretrained=False, **kwargs):
     return model
 
 
+def passt_s_f128_20sec_p16_s10_ap474_swa(pretrained=False, **kwargs):
+    print("\n\n Loading PASST TRAINED ON AUDISET with 20 Second time encodings, with STFT hop of 160 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    model = _create_vision_transformer(
+        'passt-s-f128-20sec-p16-s10-ap474-swa', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
+def passt_s_f128_30sec_p16_s10_ap473_swa(pretrained=False, **kwargs):
+    print("\n\n Loading PASST TRAINED ON AUDISET with 30 Second time encodings, with STFT hop of 160 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    model = _create_vision_transformer(
+        'passt-s-f128-30sec-p16-s10-ap473-swa', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
+
 def passt_s_swa_p16_s12_128_ap473(pretrained=False, **kwargs):
     """ PaSST pre-trained on AudioSet
     """
@@ -842,6 +876,30 @@ def fix_embedding_layer(model, embed="default"):
         model.patch_embed = PatchEmbedAdaptiveMeanKeepConv(replace=model.patch_embed)
     return model
 
+@model_ing.command
+def lighten_model(model, cut_depth=0):
+    if cut_depth == 0:
+        return model
+    if cut_depth:
+        if cut_depth < 0:
+            print(f"\n Reducing model depth by removing every  {-cut_depth} layer \n\n")
+        else:
+            print(f"\n Reducing model depth by {cut_depth} \n\n")
+            if len(model.blocks) < cut_depth + 2:
+                raise ValueError(f"Cut depth a VIT with {len(model.blocks)} "
+                                 f"layers should be between 1 and {len(model.blocks) - 2}")
+        print(f"\n Before Cutting it was  {len(model.blocks)} \n\n")
+
+        old_blocks = list(model.blocks.children())
+        if cut_depth < 0:
+            print(f"cut_depth={cut_depth}")
+            old_blocks = [old_blocks[0]] + old_blocks[1:-1:-cut_depth] + [old_blocks[-1]]
+        else:
+            old_blocks = [old_blocks[0]] + old_blocks[cut_depth + 1:]
+        model.blocks = nn.Sequential(*old_blocks)
+        print(f"\n Atfer Cutting it is  {len(model.blocks)} \n\n")
+    return model
+
 
 @model_ing.command
 def get_model(arch="passt_s_swa_p16_128_ap476", pretrained=True, n_classes=527, in_channels=1, fstride=10,
@@ -887,6 +945,10 @@ def get_model(arch="passt_s_swa_p16_128_ap476", pretrained=True, n_classes=527, 
         model_func = passt_s_swa_p16_s12_128_ap473
     elif arch == "passt_s_p16_s12_128_ap470":
         model_func = passt_s_p16_s12_128_ap470
+    elif arch == "passt_s_f128_20sec_p16_s10_ap474":
+        model_func = passt_s_f128_20sec_p16_s10_ap474_swa
+    elif arch == "passt_s_f128_30sec_p16_s10_ap473":
+        model_func = passt_s_f128_30sec_p16_s10_ap473_swa
 
     if model_func is None:
         raise RuntimeError(f"Unknown model {arch}")
@@ -894,6 +956,7 @@ def get_model(arch="passt_s_swa_p16_128_ap476", pretrained=True, n_classes=527, 
                        img_size=input_size, stride=stride, u_patchout=u_patchout,
                        s_patchout_t=s_patchout_t, s_patchout_f=s_patchout_f)
     model = fix_embedding_layer(model)
+    model = lighten_model(model)
     print(model)
     return model
 

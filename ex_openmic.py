@@ -222,6 +222,7 @@ class M(Ba3lModule):
                     y_true[:, i], y_pred[:, i], sample_weight=y_mask[:, i]) for i in range(y_true.shape[1])])
             except ValueError:
                 average_precision = np.array([np.nan] * y_true.shape[1])
+            #torch.save(average_precision, f"ap_openmic_perclass_{average_precision.mean()}.pt")
             try:
                 roc = np.array([metrics.roc_auc_score(
                     y_true[:, i], y_pred[:, i], sample_weight=y_mask[:, i]) for i in range(y_true.shape[1])])
