@@ -32,9 +32,9 @@ def default_config():
     subsample = False  # subsample squares from the dataset
     roll = True  # apply roll augmentation
     fold = 1
-    base_dir = "/share/rk7/shared/ESC-50-master/"  # base directory of the dataset as downloaded
+    base_dir = "audioset_hdf5s/esc50/"  # base directory of the dataset as downloaded
     if LMODE:
-        base_dir = "/system/user/publicdata/CP/audioset/audioset_hdf5s/"
+        base_dir = "/system/user/publicdata/CP/audioset/audioset_hdf5s/esc50/"
     meta_csv = base_dir + "meta/esc50.csv"
     audio_path = base_dir + "audio_32k/"
     ir_path = base_dir + "irs/"

@@ -19,7 +19,7 @@ from helpers.ramp import exp_warmup_linear_down, cosine_cycle
 from helpers.workersinit import worker_init_fn
 from sklearn import metrics
 
-ex = Experiment("esc50")
+ex = Experiment("passt_esc50")
 
 # Example call with all the default config:
 # python ex_esc50.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "ESC50 PaSST base"
