@@ -51,7 +51,7 @@ model.net = get_model_passt(arch="passt_s_swa_p16_128_ap476",  n_classes=50)
 print(model.net) # the transformer network.
 
 
-# now model contains the model ready to be fine tuned.
+# now model contains mel + the transformer pre-trained model ready to be fine tuned.
 # It's still expecting input of the shape [batch, seconds*32000] sampling rate is 32k
 
 model.train()
