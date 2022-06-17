@@ -206,11 +206,11 @@ default_cfgs = {
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 2000), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt-s-f128-20sec-p16-s10-ap474-swa': _cfg(
-        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.3-audioset/passt-s-f128-20sec-p16-s10-ap.474-swa.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.5/passt-s-f128-20sec-p16-s10-ap.474-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 2000), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'passt-s-f128-30sec-p16-s10-ap473-swa': _cfg(
-        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.3-audioset/passt-s-f128-30sec-p16-s10-ap.473-swa.pt',
+        url='https://github.com/kkoutini/PaSST/releases/download/v0.0.5/passt-s-f128-30sec-p16-s10-ap.473-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 3000), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
     'openmic2008_passt_u_f128_p16_s10_ap85_swa': _cfg(
