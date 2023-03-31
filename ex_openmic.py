@@ -18,8 +18,18 @@ from helpers.models_size import count_non_zero_params
 from helpers.ramp import exp_warmup_linear_down, cosine_cycle
 from helpers.workersinit import worker_init_fn
 from sklearn import metrics
+from pytorch_lightning import Trainer as plTrainer
+
+
+
+
+
 
 ex = Experiment("openmic2008")
+
+# capture the config of the trainer with the prefix "trainer", this allows to use sacred to update PL trainer config
+get_trainer = ex.command(plTrainer, prefix="trainer")
+
 
 # Example call with all the default config:
 # python ex_openmic.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "OpenMIC PaSST base"
@@ -27,7 +37,7 @@ ex = Experiment("openmic2008")
 # DDP=2 python ex_openmic.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "OpenMIC PaSST base"
 
 # define datasets and loaders
-ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=6,
+get_train_loader = ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=6,
                           num_workers=16, shuffle=None, dataset=CMD("/basedataset.get_training_set"),
                           )
 
@@ -290,10 +300,11 @@ def get_extra_swa_callback(swa=True, swa_epoch_start=2,
 
 @ex.command
 def main(_run, _config, _log, _rnd, _seed):
-    trainer = ex.get_trainer()
-    train_loader = ex.get_train_dataloaders()
-    val_loader = ex.get_val_dataloaders()
-
+    
+    trainer = get_trainer()
+    train_loader = get_train_loader()
+    val_loader = get_validate_loader()
+    
     modul = M(ex)
 
     trainer.fit(
@@ -369,9 +380,9 @@ def model_speed_test(_run, _config, _log, _rnd, _seed, speed_test_batch_size=100
 @ex.command
 def evaluate_only(_run, _config, _log, _rnd, _seed):
     # force overriding the config, not logged = not recommended
-    trainer = ex.get_trainer()
-    train_loader = ex.get_train_dataloaders()
-    val_loader = ex.get_val_dataloaders()
+    trainer = get_trainer()
+    train_loader = get_train_loader()
+    val_loader = get_validate_loader()
     modul = M(ex)
     modul.val_dataloader = None
     trainer.val_dataloaders = None
