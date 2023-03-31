@@ -60,6 +60,26 @@ model = model.cuda()
 ```
 
 # Setting up the experiments environment
+
+For training models from scratch or fine-tuning using the same setup as in the paper:
+
+1. If needed create a new environment with python 3.8 and activate it:
+```bash
+conda create -n passt python=3.8
+conda activate passt
+ ```
+2. Install pyorch build that suits your system. For example:
+```bash
+conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c pytorch\n
+
+ ```
+ 3. Install the requirements:
+ ```bash
+pip install -r requirements.txt
+ ```
+
+## Using the same environment (up to @v.0.0.8)
+
 This repo uses forked versions of sacred for configuration and logging, and pytorch-lightning for training.
 
 For setting up [Mamba](https://github.com/mamba-org/mamba) is recommended and faster then `conda`:
