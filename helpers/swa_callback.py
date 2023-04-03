@@ -216,9 +216,6 @@ class StochasticWeightAveraging(Callback):
         else:
             pl_module.do_swa = False
 
-    def on_validation_epoch_end(self, trainer, pl_module, outputs) -> None:
-        """Called when the val epoch ends."""
-        pass
 
     @staticmethod
     def transfer_weights(src_pl_module: 'pl.LightningModule', dst_pl_module: 'pl.LightningModule'):
