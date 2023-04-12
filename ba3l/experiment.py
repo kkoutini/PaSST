@@ -4,7 +4,7 @@ from importlib import import_module
 from ba3l.ingredients.datasets import Datasets
 from ba3l.ingredients.models import Models, Model
 from ba3l.plutils.lr_monitor import LearningRateMonitor
-from ba3l.trainer import Trainer
+#from ba3l.trainer import Trainer
 from ba3l.util.sacred_logger import SacredLogger
 from ba3l.plutils.progress_bar import ProgressBar
 from sacred import Experiment as Sacred_Experiment, Ingredient
@@ -31,11 +31,13 @@ def config_recursive_apply(conf, fn):
             fn(k,v)
 
 
-def get_loggers(expr, use_tensorboard_logger=False):
-    sacred_logger = SacredLogger(expr)
-    loggers = [sacred_logger]
+def get_loggers(use_tensorboard_logger=False, use_sacred_logger=False):
+    loggers = []
+    if use_sacred_logger:
+        loggers.append( SacredLogger(expr))
     if use_tensorboard_logger:
         loggers.append(pl_loggers.TensorBoardLogger(sacred_logger.name))
+    
     return loggers
 
 
@@ -52,7 +54,6 @@ class Experiment(Sacred_Experiment):
         name: Optional[str] = None,
         ingredients: Sequence[Ingredient] = (),
         datasets: Optional[Ingredient] = None,
-        trainer: Optional[Ingredient] = None,
         models: Optional[Ingredient] = None,
         interactive: bool = False,
         base_dir: Optional[PathType] = None,
@@ -99,12 +100,9 @@ class Experiment(Sacred_Experiment):
         if datasets is None:
             datasets = Datasets.get_instance()
         self.datasets = datasets
-        if trainer is None:
-            trainer = Trainer.get_instance(datasets=datasets, models=models)
-        self.trainer = trainer
         if ingredients is None:
             ingredients = []
-        ingredients = list(ingredients) + [models, datasets, trainer]
+        ingredients = list(ingredients) + [models, datasets]
         caller_globals = inspect.stack()[1][0].f_globals
         self.last_default_configuration_position = 0
         super().__init__(
@@ -117,16 +115,12 @@ class Experiment(Sacred_Experiment):
             save_git_info=save_git_info,
             caller_globals=caller_globals
         )
-        self.trainer.command(get_loggers, static_args={"expr": self})
-        self.trainer.command(get_callbacks, static_args={"expr": self})
-        # filling out Default config
+
 
     def get_run_identifier(self):
         return str(self.current_run.db_identifier) \
             + "_" + str(self.current_run._id)
 
-    def get_trainer(self, *args, **kw):
-        return self.trainer.get_trainer(*args, **kw)
 
     def get_dataloaders(self, filter={}):
         results = {}

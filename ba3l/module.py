@@ -38,4 +38,6 @@ class Ba3lModule(pl.LightningModule):
         self.config = DefaultMunch.fromDict(experiment.current_run.config)
         for key,model in experiment.current_run.config['models'].items():
             setattr(self, key, experiment.current_run.get_command_function("models."+key+"."+model['instance_cmd'])())
+        self.save_hyperparameters(self.config)
+        
 

@@ -1,6 +1,8 @@
 from pytorch_lightning.utilities import rank_zero_only
 from pytorch_lightning.loggers import LightningLoggerBase
 from pytorch_lightning.loggers.base import rank_zero_experiment
+from warnings import warn
+
 
 from logging import getLogger
 
@@ -24,6 +26,7 @@ class SacredLogger(LightningLoggerBase):
         self.sacred_experiment = sacred_experiment
         self.experiment_name = sacred_experiment.path
         self._run_id = None
+        warn('SacredLogger is deprecated', DeprecationWarning, stacklevel=2)
 
     @property
     def experiment(self):
