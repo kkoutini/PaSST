@@ -28,12 +28,12 @@ Similar to the runs on Audioset, PaSST-S:
 
 ```shell
 # Example call with all the default config:
-python ex_fsd50k.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "FSD50k PaSST-S"
+python ex_fsd50k.py with  trainer.precision=16  -p
 ```
 
 ```shell
 # Example call without overlap:
-python ex_fsd50k.py with  passt_s_swa_p16_s16_128_ap473 models.net.s_patchout_t=10  models.net.s_patchout_f=1 trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "FSD50k PaSST-S"
+python ex_fsd50k.py with  passt_s_swa_p16_s16_128_ap473 models.net.s_patchout_t=10  models.net.s_patchout_f=1 trainer.precision=16  -p
 ```
 
 

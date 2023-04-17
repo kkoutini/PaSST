@@ -18,8 +18,22 @@ from helpers.models_size import count_non_zero_params
 from helpers.ramp import exp_warmup_linear_down, cosine_cycle
 from helpers.workersinit import worker_init_fn
 from sklearn import metrics
+from pytorch_lightning import Trainer as plTrainer
+from pytorch_lightning.loggers import WandbLogger
 
-ex = Experiment("openmic2008")
+
+
+
+
+
+
+ex = Experiment("openmic")
+
+# capture the config of the trainer with the prefix "trainer", this allows to use sacred to update PL trainer config
+get_trainer = ex.command(plTrainer, prefix="trainer")
+# capture the WandbLogger and prefix it with "wandb", this allows to use sacred to update WandbLogger config from the command line
+get_logger = ex.command(WandbLogger, prefix="wandb")
+
 
 # Example call with all the default config:
 # python ex_openmic.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "OpenMIC PaSST base"
@@ -27,7 +41,7 @@ ex = Experiment("openmic2008")
 # DDP=2 python ex_openmic.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "OpenMIC PaSST base"
 
 # define datasets and loaders
-ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=6,
+get_train_loader = ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=6,
                           num_workers=16, shuffle=None, dataset=CMD("/basedataset.get_training_set"),
                           )
 
@@ -55,12 +69,15 @@ def default_conf():
                                  htk=False, fmin=0.0, fmax=None, norm=1, fmin_aug_range=10,
                                  fmax_aug_range=2000)
     }
-    basedataset = DynamicIngredient("openmic2008.dataset.dataset", wavmix=1)
+    wandb = dict(project="passt_openmic", log_model=True)
+    basedataset = DynamicIngredient("openmic.dataset.dataset", wavmix=1)
+    # set the default for the trainer
     trainer = dict(max_epochs=10, gpus=1, weights_summary='full', benchmark=True, num_sanity_val_steps=0,
                    reload_dataloaders_every_epoch=True)
     lr = 0.00001
     use_mixup = True
     mixup_alpha = 0.3
+
 
 
 # register extra possible configs
@@ -111,6 +128,9 @@ class M(Ba3lModule):
         self.do_swa = False
 
         self.distributed_mode = self.config.trainer.num_nodes > 1
+        
+
+        
 
     def forward(self, x):
         return self.net(x)
@@ -290,10 +310,11 @@ def get_extra_swa_callback(swa=True, swa_epoch_start=2,
 
 @ex.command
 def main(_run, _config, _log, _rnd, _seed):
-    trainer = ex.get_trainer()
-    train_loader = ex.get_train_dataloaders()
-    val_loader = ex.get_val_dataloaders()
-
+    
+    trainer = get_trainer(logger=get_logger())
+    train_loader = get_train_loader()
+    val_loader = get_validate_loader()
+    
     modul = M(ex)
 
     trainer.fit(
@@ -369,9 +390,9 @@ def model_speed_test(_run, _config, _log, _rnd, _seed, speed_test_batch_size=100
 @ex.command
 def evaluate_only(_run, _config, _log, _rnd, _seed):
     # force overriding the config, not logged = not recommended
-    trainer = ex.get_trainer()
-    train_loader = ex.get_train_dataloaders()
-    val_loader = ex.get_val_dataloaders()
+    trainer = get_trainer()
+    train_loader = get_train_loader()
+    val_loader = get_validate_loader()
     modul = M(ex)
     modul.val_dataloader = None
     trainer.val_dataloaders = None
