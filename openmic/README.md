@@ -21,10 +21,10 @@ these files contains the mp3s of the dataset and the labels.
 Similar to audioset you can use:
 ```shell
 # Example call with all the default config:
-python ex_openmic.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "OpenMIC PaSST base"
+python ex_openmic.py with  trainer.precision=16  -p 
 ```
 
 ```shell
 # with 2 gpus:
-DDP=2 python ex_openmic.py with  trainer.precision=16  -p -m mongodb_server:27000:audioset21_balanced -c "OpenMIC PaSST base"
+DDP=2 python ex_openmic.py with  trainer.precision=16  -p 
 ```

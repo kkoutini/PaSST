@@ -27,7 +27,7 @@ from pytorch_lightning.loggers import WandbLogger
 
 
 
-ex = Experiment("openmic2008")
+ex = Experiment("openmic")
 
 # capture the config of the trainer with the prefix "trainer", this allows to use sacred to update PL trainer config
 get_trainer = ex.command(plTrainer, prefix="trainer")
@@ -70,7 +70,7 @@ def default_conf():
                                  fmax_aug_range=2000)
     }
     wandb = dict(project="passt_openmic", log_model=True)
-    basedataset = DynamicIngredient("openmic2008.dataset.dataset", wavmix=1)
+    basedataset = DynamicIngredient("openmic.dataset.dataset", wavmix=1)
     # set the default for the trainer
     trainer = dict(max_epochs=10, gpus=1, weights_summary='full', benchmark=True, num_sanity_val_steps=0,
                    reload_dataloaders_every_epoch=True)
