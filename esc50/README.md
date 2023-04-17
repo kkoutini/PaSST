@@ -6,7 +6,7 @@
 unpack the zip file into a directory (the default path is `./audioset_hdf5s/`). The `base_dir` config in the dataset file ([here](https://github.com/kkoutini/PaSST/blob/main/esc50/dataset.py#L35)) should point to the extracted contents of the dataset zip file.
 - Running the experiments using the common configurations (similar to Audioset)
 ```shell
-python3 ex_esc50.py with models.net.s_patchout_t=10 models.net.s_patchout_f=5  basedataset.fold=1 -p -m mymongodb_observer_server:27000:esc50 
+python3 ex_esc50.py with models.net.s_patchout_t=10 models.net.s_patchout_f=5  basedataset.fold=1 -p
 ```
 ## Pre-trained models
 
