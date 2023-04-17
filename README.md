@@ -13,19 +13,17 @@ Patchout works by dropping out some of the input patches during training. In eit
 
 ## Table of contents
 
-- [PaSST: Efficient Training of Audio Transformers with Patchout](#passt--efficient-training-of-audio-transformers-with-patchout)
-  - [Table of contents](#table-of-contents)
-  - [Inference and extracting embeddings from pre-trained models](#inference-and-extracting-embeddings-from-pre-trained-models)
-    - [Getting the logits from the pretrained models](#getting-the-logits-from-the-pretrained-models)
-    - [Getting a pre-trained model for fine tuning](#getting-a-pre-trained-model-for-fine-tuning)
+- [Inference and extracting embeddings from pre-trained models](#inference-and-extracting-embeddings-from-pre-trained-models)
+  - [Getting the logits from the pretrained models](#getting-the-logits-from-the-pretrained-models)
+  - [Getting a pre-trained model for fine tuning](#getting-a-pre-trained-model-for-fine-tuning)
+- [Development environment](#development-environment)
   - [Setting up the development experiments environment](#setting-up-the-development-experiments-environment)
-    - [Using the exproted conda environment](#using-the-exproted-conda-environment)
-  - [Getting started](#getting-started)
-  - [Training on Audioset](#training-on-audioset)
-  - [Pre-trained models](#pre-trained-models)
-  - [Contact](#contact)
-
-
+  - [Setting up using the exported conda environment](#setting-up-using-the-exported-conda-environment)
+  - [Checking the environment](#checking-the-environment)
+- [Getting started](#getting-started)
+- [Training on Audioset](#training-on-audioset)
+- [Pre-trained models](#pre-trained-models)
+- [Contact](#contact)
 
 ## Inference and extracting embeddings from pre-trained models
 
@@ -81,7 +79,10 @@ model = model.cuda()
 
 ```
 
-## Setting up the development experiments environment
+## Development environment
+If you want to use the same environment as in the paper, you can follow the instructions below.
+
+### Setting up the development experiments environment
 
 For training models from scratch or fine-tuning using the same setup as in the paper:
 
@@ -105,7 +106,7 @@ conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit
 pip install -r requirements.txt
  ```
 
-### Using the exproted conda environment
+### Setting up using the exported conda environment
 
 Alternatively, you can use the exported conda environment `environment.yml` to create the environment.
 
@@ -118,17 +119,12 @@ Now you can import the environment from `environment.yml`
 ```shell
 mamba env create -f environment.yml
 ```
-Now you have an environment named `ba3l`. Now install the forked versions of `sacred` and `pl-lightning` and `ba3l`.
-```shell
-# dependencies
-conda activate ba3l
-pip install -e 'git+https://github.com/kkoutini/ba3l@v0.0.2#egg=ba3l'
-pip install -e 'git+https://github.com/kkoutini/pytorch-lightning@v0.0.1#egg=pytorch-lightning'
-pip install -e 'git+https://github.com/kkoutini/sacred@v0.0.1#egg=sacred' 
-```
+Now you have an environment named `ba3l`.
 
-In order to check the environment we used in our runs, please check the `environment.yml` and `pip_list.txt` files.
- Which were exported using:
+### Checking the environment
+
+In order to check if your environment matched the environment we used in our runs, please check the `environment.yml` and `pip_list.txt` files, which were exported using:
+
 ```shell
 conda env export --no-builds | grep -v "prefix" > environment.yml
 pip list > pip_list.txt
