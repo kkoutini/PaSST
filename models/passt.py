@@ -169,6 +169,10 @@ default_cfgs = {
         url='https://github.com/kkoutini/PaSST/releases/download/v.0.0.9/passt-s-kd-ap.486.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
         classifier=('head.1', 'head_dist'), num_classes=527),
+    'passt_l_kd_p16_128_ap47': _cfg(
+        url='https://github.com/kkoutini/PaSST/releases/download/v.0.0.10/passt-l-kd-ap.47.pt',
+        mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
+        classifier=('head.1', 'head_dist'), num_classes=527),
     'passt_s_swa_p16_128_ap4761': _cfg(
         url='https://github.com/kkoutini/PaSST/releases/download/v0.0.2-audioset/passt-s-f128-p16-s10-ap.4761-swa.pt',
         mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, input_size=(1, 128, 998), crop_pct=1.0,
@@ -756,6 +760,19 @@ def passt_s_kd_p16_128_ap486(pretrained=False, **kwargs):
     return model
 
 
+def passt_l_kd_p16_128_ap47(pretrained=False, **kwargs):
+    """ PaSST pre-trained on AudioSet
+    """
+    print("\n\n Loading PaSST-L (light, reduced depth=7) pre-trained on AudioSet (with KD) Patch 16 stride 10 structured patchout mAP=4708 \n\n")
+    model_kwargs = dict(patch_size=16, embed_dim=768,
+                        depth=7, num_heads=12, **kwargs)
+    if model_kwargs.get("stride") != (10, 10):
+        warnings.warn(
+            f"This model was pre-trained with strides {(10, 10)}, but now you set (fstride,tstride) to {model_kwargs.get('stride')}.")
+    model = _create_vision_transformer(
+        'passt_l_kd_p16_128_ap47', pretrained=pretrained, distilled=True, **model_kwargs)
+    return model
+
 def passt_s_swa_p16_128_ap4761(pretrained=False, **kwargs):
     """ PaSST pre-trained on AudioSet
     """
@@ -946,6 +963,8 @@ def get_model(arch="passt_s_kd_p16_128_ap486", pretrained=True, n_classes=527, i
         model_func = deit_base_distilled_patch16_384
     elif arch == "passt_s_kd_p16_128_ap486":  # pretrained
         model_func = passt_s_kd_p16_128_ap486
+    elif arch == "passt_l_kd_p16_128_ap47":  # pretrained passt-L
+        model_func = passt_l_kd_p16_128_ap47
     elif arch == "passt_s_swa_p16_128_ap476":  # pretrained
         model_func = passt_s_swa_p16_128_ap476
     elif arch == "passt_s_swa_p16_128_ap4761":
