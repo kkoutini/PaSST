@@ -329,6 +329,21 @@ def get_roll_func(axis=1, shift=None, shift_range=50):
     return roll_func
 
 
+
+class AddIndexDataset(TorchDataset):
+    def __init__(self, ds):
+        self.ds = ds
+
+    def __getitem__(self, index):
+        x, f, y = self.ds[index]
+        return x, f, y, index
+
+    def __len__(self):
+        return len(self.ds)
+
+
+
+
 @dataset.command
 def get_training_set(normalize, roll, wavmix=False):
     ds = get_base_training_set()
@@ -346,7 +361,7 @@ def get_training_set(normalize, roll, wavmix=False):
 
 
 @dataset.command
-def get_full_training_set(normalize, roll, wavmix=False):
+def get_full_training_set(normalize, roll, wavmix=False, add_index=False):
     ds = get_base_full_training_set()
     get_ir_sample()
     if normalize:
@@ -357,17 +372,21 @@ def get_full_training_set(normalize, roll, wavmix=False):
         ds = PreprocessDataset(ds, get_roll_func())
     if wavmix:
         ds = MixupDataset(ds)
+    if add_index:
+        ds = AddIndexDataset(ds)
     return ds
 
 
 
 @dataset.command
-def get_test_set(normalize):
+def get_test_set(normalize, add_index_test=False):
     ds = get_base_test_set()
     if normalize:
         print("normalized test!")
         fill_norms()
         ds = PreprocessDataset(ds, norm_func)
+    if add_index_test:
+        ds = AddIndexDataset(ds)
     return ds
 
 
