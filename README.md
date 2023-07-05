@@ -285,7 +285,7 @@ this will get automatically download pretrained PaSST on audioset with with mAP 
 There are several pretrained models availble with different strides (overlap) and with/without using SWA: `passt_s_p16_s16_128_ap468, passt_s_swa_p16_s16_128_ap473, passt_s_swa_p16_s14_128_ap471, passt_s_p16_s14_128_ap469, passt_s_swa_p16_s12_128_ap473, passt_s_p16_s12_128_ap470`. 
 For example, In `passt_s_swa_p16_s16_128_ap473`: `p16` mean patch size is `16x16`, `s16` means no overlap (stride=16), 128 mel bands, `ap473` refers to the performance of this model on Audioset mAP=0.479.
 
-In general, you can get a this pretrained model using:
+In general, you can get a pretrained model using:
 
 ```python
 from models.passt import get_model
@@ -295,7 +295,7 @@ passt = get_model(arch="passt_s_swa_p16_s16_128_ap473", fstride=16, tstride=16)
 Using the framework, you can evaluate this model using:
 
 ```shell
-python ex_audioset.py evaluate_only with passt_s_swa_p16_s16_128_ap473
+python ex_audioset.py evaluate_only with  trainer.precision=16  passt_s_swa_p16_s16_128_ap473 -p
 ```
 
 Ensemble of these models are provided as well:

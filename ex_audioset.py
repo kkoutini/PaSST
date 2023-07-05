@@ -30,16 +30,16 @@ ex = Experiment("audioset")
 # DDP=2 python ex_audioset.py with trainer.precision=16  models.net.arch=passt_deit_bd_p16_384 -p -m mongodb_server:27000:audioset21_balanced -c "PaSST base 2 GPU"
 
 # capture the config of the trainer with the prefix "trainer", this allows to use sacred to update PL trainer config
-get_trainer = ex.command(plTrainer, prefix="trainer") # now you can use in the cmd trainer.precision=16 for example
+# now you can use in the cmd trainer.precision=16 for example
+get_trainer = ex.command(plTrainer, prefix="trainer")
 # capture the WandbLogger and prefix it with "wandb", this allows to use sacred to update WandbLogger config from the command line
 get_logger = ex.command(WandbLogger, prefix="wandb")
 
 
-
 # define datasets and loaders
 get_train_loader = ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=12,
-                          num_workers=16, shuffle=None, dataset=CMD("/basedataset.get_full_training_set"),
-                          sampler=CMD("/basedataset.get_ft_weighted_sampler"))
+                                             num_workers=16, shuffle=None, dataset=CMD("/basedataset.get_full_training_set"),
+                                             sampler=CMD("/basedataset.get_ft_weighted_sampler"))
 
 get_validate_loader = ex.datasets.test.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn),
                                             validate=True, batch_size=20, num_workers=16,
@@ -48,7 +48,7 @@ get_validate_loader = ex.datasets.test.iter(DataLoader, static_args=dict(worker_
 
 @ex.config
 def default_conf():
-    cmd = " ".join(sys.argv) # command line arguments
+    cmd = " ".join(sys.argv)  # command line arguments
     saque_cmd = os.environ.get("SAQUE_CMD", "").strip()
     saque_id = os.environ.get("SAQUE_ID", "").strip()
     slurm_job_id = os.environ.get("SLURM_JOB_ID", "").strip()
@@ -58,7 +58,7 @@ def default_conf():
     process_id = os.getpid()
     models = {
         "net": DynamicIngredient("models.passt.model_ing", arch="passt_deit_bd_p16_384", n_classes=527, s_patchout_t=40,
-                                 s_patchout_f=4), # network config
+                                 s_patchout_f=4),  # network config
         "mel": DynamicIngredient("models.preprocess.model_ing",
                                  instance_cmd="AugmentMelSTFT",
                                  n_mels=128, sr=32000, win_length=800, hopsize=320, n_fft=1024, freqm=48,
@@ -69,9 +69,9 @@ def default_conf():
     basedataset = DynamicIngredient("audioset.dataset.dataset", wavmix=1)
     wandb = dict(project="passt_audioset", log_model=True)
 
-    trainer = dict(max_epochs=130, gpus=1, weights_summary='full', benchmark=True, num_sanity_val_steps=0,
+    trainer = dict(max_epochs=130, gpus=1, weights_summary='full', benchmark=True, num_sanity_val_steps=0, precision=16,
                    reload_dataloaders_every_epoch=True)
-    lr = 0.00002 # learning rate
+    lr = 0.00002  # learning rate
     use_mixup = True
     mixup_alpha = 0.3
 
@@ -87,7 +87,8 @@ def get_scheduler_lambda(warm_up_len=5, ramp_down_start=50, ramp_down_len=50, la
         return exp_warmup_linear_down(warm_up_len, ramp_down_len, ramp_down_start, last_lr_value)
     if schedule_mode == "cos_cyc":
         return cosine_cycle(warm_up_len, ramp_down_start, last_lr_value)
-    raise RuntimeError(f"schedule_mode={schedule_mode} Unknown for a lambda funtion.")
+    raise RuntimeError(
+        f"schedule_mode={schedule_mode} Unknown for a lambda funtion.")
 
 
 @ex.command
@@ -154,18 +155,21 @@ class M(Ba3lModule):
         if self.use_mixup:
             rn_indices, lam = my_mixup(batch_size, self.mixup_alpha)
             lam = lam.to(x.device)
-            x = x * lam.reshape(batch_size, 1, 1, 1) + x[rn_indices] * (1. - lam.reshape(batch_size, 1, 1, 1))
+            x = x * lam.reshape(batch_size, 1, 1, 1) + \
+                x[rn_indices] * (1. - lam.reshape(batch_size, 1, 1, 1))
 
         y_hat, embed = self.forward(x)
 
         if self.use_mixup:
-            y_mix = y * lam.reshape(batch_size, 1) + y[rn_indices] * (1. - lam.reshape(batch_size, 1))
+            y_mix = y * lam.reshape(batch_size, 1) + \
+                y[rn_indices] * (1. - lam.reshape(batch_size, 1))
             samples_loss = F.binary_cross_entropy_with_logits(
                 y_hat, y_mix, reduction="none")
             loss = samples_loss.mean()
             samples_loss = samples_loss.detach()
         else:
-            samples_loss = F.binary_cross_entropy_with_logits(y_hat, y, reduction="none")
+            samples_loss = F.binary_cross_entropy_with_logits(
+                y_hat, y, reduction="none")
             loss = samples_loss.mean()
             samples_loss = samples_loss.detach()
 
@@ -203,7 +207,8 @@ class M(Ba3lModule):
             loss = samples_loss.mean()
             out = torch.sigmoid(y_hat.detach())
             # self.log("validation.loss", loss, prog_bar=True, on_epoch=True, on_step=False)
-            results = {**results, net_name + "val_loss": loss, net_name + "out": out, net_name + "target": y.detach()}
+            results = {**results, net_name + "val_loss": loss,
+                       net_name + "out": out, net_name + "target": y.detach()}
         results = {k: v.cpu() for k, v in results.items()}
         return results
 
@@ -212,24 +217,28 @@ class M(Ba3lModule):
         if self.do_swa:
             model_name = model_name + [("swa_", self.net_swa)]
         for net_name, net in model_name:
-            avg_loss = torch.stack([x[net_name + 'val_loss'] for x in outputs]).mean()
+            avg_loss = torch.stack([x[net_name + 'val_loss']
+                                   for x in outputs]).mean()
             out = torch.cat([x[net_name + 'out'] for x in outputs], dim=0)
-            target = torch.cat([x[net_name + 'target'] for x in outputs], dim=0)
+            target = torch.cat([x[net_name + 'target']
+                               for x in outputs], dim=0)
             try:
                 average_precision = metrics.average_precision_score(
                     target.float().numpy(), out.float().numpy(), average=None)
             except ValueError:
                 average_precision = np.array([np.nan] * 527)
             try:
-                roc = metrics.roc_auc_score(target.numpy(), out.numpy(), average=None)
+                roc = metrics.roc_auc_score(
+                    target.numpy(), out.numpy(), average=None)
             except ValueError:
                 roc = np.array([np.nan] * 527)
             logs = {net_name + 'val.loss': torch.as_tensor(avg_loss).cuda(),
                     net_name + 'ap': torch.as_tensor(average_precision.mean()).cuda(),
                     net_name + 'roc': torch.as_tensor(roc.mean()).cuda(),
                     'step': torch.as_tensor(self.current_epoch).cuda()}
-            torch.save(average_precision, f"ap_perclass_{average_precision.mean()}.pt")
-            print(average_precision)
+            # torch.save(average_precision,
+            #            f"ap_perclass_{average_precision.mean()}.pt")
+            # print(average_precision)
             self.log_dict(logs, sync_dist=True)
             if self.distributed_mode:
                 allout = self.all_gather(out)
@@ -243,7 +252,8 @@ class M(Ba3lModule):
                             'step': torch.as_tensor(self.current_epoch).cuda()}
                     self.log_dict(logs, sync_dist=False)
             else:
-                self.log_dict({net_name + "allap": logs[net_name + 'ap'], 'step': logs['step']}, sync_dist=True)
+                self.log_dict(
+                    {net_name + "allap": logs[net_name + 'ap'], 'step': logs['step']}, sync_dist=True)
 
     def configure_optimizers(self):
         # REQUIRED
@@ -336,9 +346,10 @@ def model_speed_test(_run, _config, _log, _rnd, _seed, speed_test_batch_size=100
     torch.cuda.synchronize()
     t1 = time.time()
     for i in range(10):
-        with  torch.cuda.amp.autocast():
+        with torch.cuda.amp.autocast():
             y_hat, embed = net(x)
-            loss = F.binary_cross_entropy_with_logits(y_hat, target, reduction="none").mean()
+            loss = F.binary_cross_entropy_with_logits(
+                y_hat, target, reduction="none").mean()
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
@@ -350,16 +361,18 @@ def model_speed_test(_run, _config, _log, _rnd, _seed, speed_test_batch_size=100
     print("testing speed")
 
     for i in range(test_length):
-        with  torch.cuda.amp.autocast():
+        with torch.cuda.amp.autocast():
             y_hat, embed = net(x)
-            loss = F.binary_cross_entropy_with_logits(y_hat, target, reduction="none").mean()
+            loss = F.binary_cross_entropy_with_logits(
+                y_hat, target, reduction="none").mean()
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
     torch.cuda.synchronize()
     t2 = time.time()
     print('test done:', (t2 - t1))
-    print("average speed: ", (test_length * batch_size) / (t2 - t1), " specs/second")
+    print("average speed: ", (test_length * batch_size) /
+          (t2 - t1), " specs/second")
 
 
 @ex.command
@@ -367,7 +380,7 @@ def evaluate_only(_run, _config, _log, _rnd, _seed):
     # force overriding the config, not logged = not recommended
     trainer = get_trainer(logger=get_logger())
     val_loader = get_validate_loader()
-    
+
     modul = M(ex)
     modul.val_dataloader = None
     trainer.val_dataloaders = None
@@ -412,7 +425,8 @@ def multiprocessing_run(rank, word_size):
     print("rank ", rank, os.getpid())
     print("word_size ", word_size)
     os.environ['NODE_RANK'] = str(rank)
-    os.environ['CUDA_VISIBLE_DEVICES'] = os.environ['CUDA_VISIBLE_DEVICES'].split(",")[rank]
+    os.environ['CUDA_VISIBLE_DEVICES'] = os.environ['CUDA_VISIBLE_DEVICES'].split(",")[
+        rank]
     argv = sys.argv
     if rank != 0:
         print(f"Unobserved {os.getpid()} with rank {rank}")
@@ -420,7 +434,8 @@ def multiprocessing_run(rank, word_size):
     if "with" not in argv:
         argv = argv + ["with"]
 
-    argv = argv + [f"trainer.num_nodes={word_size}", f"trainer.accelerator=ddp"]
+    argv = argv + \
+        [f"trainer.num_nodes={word_size}", f"trainer.accelerator=ddp"]
     print(argv)
 
     @ex.main
@@ -442,7 +457,8 @@ if __name__ == '__main__':
         word_size = int(word_size)
         print(f"\n\nDDP TRAINING WITH WORD_SIZE={word_size}\n\n")
         os.environ['MASTER_ADDR'] = '127.0.0.1'
-        os.environ['MASTER_PORT'] = f"{9999 + random.randint(0, 9999)}"  # plz no collisions
+        # plz no collisions
+        os.environ['MASTER_PORT'] = f"{9999 + random.randint(0, 9999)}"
         os.environ['PL_IN_DDP_SUBPROCESS'] = '1'
 
         for rank in range(word_size):
