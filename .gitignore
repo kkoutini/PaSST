@@ -121,3 +121,4 @@ lightning_logs/*
 audioset_hdf5s/*
 .vscode/settings.json
 wandb/*
+.vscode/launch.json
