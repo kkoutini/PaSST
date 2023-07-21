@@ -74,6 +74,7 @@ def default_conf():
     lr = 0.00002  # learning rate
     use_mixup = True
     mixup_alpha = 0.3
+    compile = True # compile the model, requires pytorch >= 2.0
 
 
 # register extra possible configs
@@ -125,6 +126,11 @@ class M(Ba3lModule):
         self.do_swa = False
 
         self.distributed_mode = self.config.trainer.num_nodes > 1
+        
+        if self.config.compile:
+            # pt 2 magic
+            self.net = torch.compile(self.net)
+            self.mel = torch.compile(self.mel)
 
     def forward(self, x):
         return self.net(x)
@@ -304,7 +310,7 @@ def main(_run, _config, _log, _rnd, _seed):
 
     trainer.fit(
         modul,
-        train_dataloader=train_loader,
+        train_dataloaders=train_loader,
         val_dataloaders=val_loader,
     )
 
@@ -312,7 +318,7 @@ def main(_run, _config, _log, _rnd, _seed):
 
 
 @ex.command
-def model_speed_test(_run, _config, _log, _rnd, _seed, speed_test_batch_size=100):
+def model_speed_test(_run, _config, _log, _rnd, _seed, speed_test_batch_size=12):
     '''
     Test training speed of a model
     @param _run:
@@ -339,6 +345,7 @@ def model_speed_test(_run, _config, _log, _rnd, _seed, speed_test_batch_size=100
     scaler = torch.cuda.amp.GradScaler()
     torch.backends.cudnn.benchmark = True
     # net = torch.jit.trace(net,(x,))
+    net = torch.compile(net)
     optimizer = torch.optim.SGD(net.parameters(), lr=0.001)
 
     print("warmup")
@@ -383,9 +390,9 @@ def evaluate_only(_run, _config, _log, _rnd, _seed):
 
     modul = M(ex)
     modul.val_dataloader = None
-    trainer.val_dataloaders = None
+    #trainer.val_dataloaders = None
     print(f"\n\nValidation len={len(val_loader)}\n")
-    res = trainer.validate(modul, val_dataloaders=val_loader)
+    res = trainer.validate(modul, dataloaders=val_loader)
     print("\n\n Validtaion:")
     print(res)
 

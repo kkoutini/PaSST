@@ -23,13 +23,11 @@ import torch
 from torch import nn
 
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks.base import Callback
-from pytorch_lightning.trainer.optimizers import _get_default_scheduler_config
-from pytorch_lightning.utilities import _TORCH_GREATER_EQUAL_1_6, rank_zero_warn
+from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
-if _TORCH_GREATER_EQUAL_1_6:
-    from torch.optim.swa_utils import SWALR
+
+from torch.optim.swa_utils import SWALR
 
 _AVG_FN = Callable[[torch.Tensor, torch.Tensor, torch.LongTensor], torch.FloatTensor]
 
@@ -137,18 +135,16 @@ class StochasticWeightAveraging(Callback):
     def pl_module_contains_batch_norm(pl_module: 'pl.LightningModule'):
         return any(isinstance(module, nn.modules.batchnorm._BatchNorm) for module in pl_module.modules())
 
-    def on_before_accelerator_backend_setup(self, trainer: 'pl.Trainer', pl_module: 'pl.LightningModule'):
+    def setup(self, trainer: 'pl.Trainer', pl_module: 'pl.LightningModule', stage:str):
         # copy the model before moving it to accelerator device.
         self._average_model = deepcopy(pl_module.net)
 
     def on_fit_start(self, trainer: 'pl.Trainer', pl_module: 'pl.LightningModule'):
-        optimizers = trainer.optimizers
-        lr_schedulers = trainer.lr_schedulers
 
-        if len(optimizers) != 1:
+        if len(trainer.optimizers) != 1:
             raise MisconfigurationException("SWA currently works with 1 `optimizer`.")
 
-        if len(lr_schedulers) > 1:
+        if len(trainer.lr_scheduler_configs) > 1:
             raise MisconfigurationException("SWA currently not supported for more than 1 `lr_scheduler`.")
 
         if isinstance(self._swa_epoch_start, float):
@@ -202,7 +198,7 @@ class StochasticWeightAveraging(Callback):
 
 
     def on_train_epoch_end(self, trainer: 'pl.Trainer',pl_module: 'pl.LightningModule', *args):
-        trainer.train_loop._skip_backward = False
+        trainer.fit_loop._skip_backward = False
 
 
     def on_train_end(self, trainer: 'pl.Trainer', pl_module: 'pl.LightningModule'):

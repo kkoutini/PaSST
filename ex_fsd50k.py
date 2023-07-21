@@ -321,7 +321,7 @@ def main(_run, _config, _log, _rnd, _seed):
         val_dataloaders=[val_loader, eval_loader],
     )
     ## evaluate best model on eval set
-    trainer.val_dataloaders = None
+    #trainer.val_dataloaders = None
     modul.val_dataloaders = None
 
     return {"done": True}
@@ -396,9 +396,9 @@ def evaluate_only(_run, _config, _log, _rnd, _seed):
     val_loader = get_validate_loader()
     modul = M(ex)
     modul.val_dataloader = None
-    trainer.val_dataloaders = None
+    #trainer.val_dataloaders = None
     print(f"\n\nValidation len={len(val_loader)}\n")
-    res = trainer.validate(modul, val_dataloaders=val_loader)
+    res = trainer.validate(modul, dataloaders=val_loader)
     print("\n\n Validtaion:")
     print(res)
 
