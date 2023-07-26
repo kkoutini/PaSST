@@ -292,6 +292,8 @@ class Mlp(nn.Module):
 
 first_RUN = True
 
+PLUS1_TRICK = False
+
 
 class PatchEmbed(nn.Module):
     """ 2D Image to Patch Embedding
@@ -344,7 +346,13 @@ class Attention(nn.Module):
         q, k, v = qkv[0], qkv[1], qkv[2]  # make torchscript happy (cannot use tensor as tuple)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
+        if PLUS1_TRICK:
+            # +1 trick
+            attn = torch.cat([attn, torch.zeros(attn.shape[:-1]+(1,), dtype=attn.dtype, device=attn.device)], dim=-1)
         attn = attn.softmax(dim=-1)
+        if PLUS1_TRICK:
+            # +1 trick
+            attn = attn[...,:-1]
         attn = self.attn_drop(attn)
 
         x = (attn @ v).transpose(1, 2).reshape(B, N, C)
