@@ -10,9 +10,10 @@ from copy import deepcopy
 
 import torch
 from torch import nn
-
-from timm.models._hub import download_cached_file
-
+try:
+    from timm.models._hub import download_cached_file
+except ModuleNotFoundError:
+    from timm.models.hub import download_cached_file
 
 # Global variables for rarely used pretrained checkpoint download progress and hash check.
 # Use set_pretrained_download_progress / set_pretrained_check_hash functions to toggle.

@@ -1,6 +1,6 @@
 import os
 import sys
-
+import pytorch_lightning
 import torch
 from pytorch_lightning.callbacks import ModelCheckpoint
 from sacred.config_helpers import DynamicIngredient, CMD
@@ -296,7 +296,10 @@ def get_extra_swa_callback(swa=True, swa_epoch_start=50,
     if not swa:
         return []
     print("\n Using swa!\n")
-    from helpers.swa_callback import StochasticWeightAveraging
+    if pytorch_lightning.__version__ <= "1.5":
+        from helpers.swa_legacy import StochasticWeightAveraging
+    else:
+        from helpers.swa_callback import StochasticWeightAveraging
     return [StochasticWeightAveraging(swa_epoch_start=swa_epoch_start, swa_freq=swa_freq)]
 
 
@@ -307,12 +310,18 @@ def main(_run, _config, _log, _rnd, _seed):
     val_loader = get_validate_loader()
 
     modul = M(ex)
-
-    trainer.fit(
-        modul,
-        train_dataloaders=train_loader,
-        val_dataloaders=val_loader,
-    )
+    if pytorch_lightning.__version__ <= "1.5":
+        trainer.fit(
+            modul,
+            train_dataloader=train_loader,
+            val_dataloaders=val_loader,
+        )
+    else:
+        trainer.fit(
+            modul,
+            train_dataloaders=train_loader,
+            val_dataloaders=val_loader,
+        )
 
     return {"done": True}
 
