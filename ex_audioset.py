@@ -1,11 +1,13 @@
 import os
 import sys
+import PIL
 import pytorch_lightning
 import torch
 from pytorch_lightning.callbacks import ModelCheckpoint
 from sacred.config_helpers import DynamicIngredient, CMD
 from torch.nn import functional as F
 import numpy as np
+import wandb
 
 from ba3l.experiment import Experiment
 from ba3l.module import Ba3lModule
@@ -20,7 +22,7 @@ from helpers.workersinit import worker_init_fn
 from sklearn import metrics
 from pytorch_lightning import Trainer as plTrainer
 from pytorch_lightning.loggers import WandbLogger
-
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 ex = Experiment("audioset")
 
@@ -34,7 +36,7 @@ ex = Experiment("audioset")
 get_trainer = ex.command(plTrainer, prefix="trainer")
 # capture the WandbLogger and prefix it with "wandb", this allows to use sacred to update WandbLogger config from the command line
 get_logger = ex.command(WandbLogger, prefix="wandb")
-
+wandb_logger = None
 
 # define datasets and loaders
 get_train_loader = ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=12,
@@ -67,8 +69,8 @@ def default_conf():
                                  fmax_aug_range=2000)
     }
     basedataset = DynamicIngredient("audioset.dataset.dataset", wavmix=1)
-    wandb = dict(project="passt_audioset", log_model=True)
-
+    wandb = dict(project="passt_audioset2", log_model=True)
+    watch_model = True
     trainer = dict(max_epochs=130, gpus=1, weights_summary='full', benchmark=True, num_sanity_val_steps=0, precision=16,
                    reload_dataloaders_every_epoch=True)
     lr = 0.00002  # learning rate
@@ -129,8 +131,10 @@ class M(Ba3lModule):
         
         if self.config.compile:
             # pt 2 magic
+            print("\n\nCompiling the model pytorch 2... \n\n")
             self.net = torch.compile(self.net)
-            self.mel = torch.compile(self.mel)
+            # compile only the net, not the mel
+            #self.mel = torch.compile(self.mel)
 
     def forward(self, x):
         return self.net(x)
@@ -153,6 +157,14 @@ class M(Ba3lModule):
         x, f, y = batch
         if self.mel:
             x = self.mel_forward(x)
+        
+        if self.global_step < 5:
+            images = [ wandb.Image(
+                PIL.Image.fromarray((i * 255).astype(np.uint8)).convert("L"),
+                caption="spectrograms",
+            ) for i in x[:, 0, :, :].cpu().numpy()]
+            wandb.log({"spectrograms": images})
+            # wandb_logger.log_image(key="spectrograms", images=[i for i in x[:,0,:,:].cpu().numpy()])
 
         orig_x = x
         batch_size = len(y)
@@ -180,13 +192,16 @@ class M(Ba3lModule):
             samples_loss = samples_loss.detach()
 
         results = {"loss": loss, }
-
+        self.log('trainer/lr', self.trainer.optimizers[0].param_groups[0]['lr'])
+        self.log('epoch', self.current_epoch)
+        self.log("training.loss", loss.detach())
         return results
 
     def training_epoch_end(self, outputs):
         avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
 
-        logs = {'train.loss': avg_loss, 'step': self.current_epoch}
+        logs = {'train.loss': avg_loss, # 'step': self.current_epoch
+                }
 
         self.log_dict(logs, sync_dist=True)
 
@@ -202,6 +217,15 @@ class M(Ba3lModule):
         x, f, y = batch
         if self.mel:
             x = self.mel_forward(x)
+
+        if self.global_step < 5:
+            images = [ wandb.Image(
+                PIL.Image.fromarray((i * 255).astype(np.uint8)).convert("L"),
+                caption="validation_spectrograms",
+            ) for i in x[:, 0, :, :].cpu().numpy()]
+            wandb.log({"validation_spectrograms": images})
+            # wandb_logger.log_image(key="validation_spectrograms", images=[
+            #                        i for i in x[:, 0, :, :].cpu().numpy()])
 
         results = {}
         model_name = [("", self.net)]
@@ -240,8 +264,9 @@ class M(Ba3lModule):
                 roc = np.array([np.nan] * 527)
             logs = {net_name + 'val.loss': torch.as_tensor(avg_loss).cuda(),
                     net_name + 'ap': torch.as_tensor(average_precision.mean()).cuda(),
-                    net_name + 'roc': torch.as_tensor(roc.mean()).cuda(),
-                    'step': torch.as_tensor(self.current_epoch).cuda()}
+                    net_name + 'roc': torch.as_tensor(roc.mean()).cuda(),}
+                    #'step': torch.as_tensor(self.current_epoch).cuda()}
+            
             # torch.save(average_precision,
             #            f"ap_perclass_{average_precision.mean()}.pt")
             # print(average_precision)
@@ -255,11 +280,15 @@ class M(Ba3lModule):
                     allout.reshape(-1, allout.shape[-1]).cpu().numpy(), average=None)
                 if self.trainer.is_global_zero:
                     logs = {net_name + "allap": torch.as_tensor(average_precision.mean()).cuda(),
-                            'step': torch.as_tensor(self.current_epoch).cuda()}
+                           # 'step': torch.as_tensor(self.current_epoch).cuda()
+                            }
                     self.log_dict(logs, sync_dist=False)
             else:
                 self.log_dict(
-                    {net_name + "allap": logs[net_name + 'ap'], 'step': logs['step']}, sync_dist=True)
+                    {net_name + "allap": logs[net_name + 'ap'], 
+                     #'step': logs['step']
+                      }
+                    , sync_dist=True)
 
     def configure_optimizers(self):
         # REQUIRED
@@ -273,7 +302,7 @@ class M(Ba3lModule):
         }
 
     def configure_callbacks(self):
-        return get_extra_checkpoint_callback() + get_extra_swa_callback()
+        return get_extra_checkpoint_callback() + get_extra_swa_callback() + [LearningRateMonitor(logging_interval='epoch')]
 
 
 @ex.command
@@ -304,12 +333,18 @@ def get_extra_swa_callback(swa=True, swa_epoch_start=50,
 
 
 @ex.command
-def main(_run, _config, _log, _rnd, _seed):
-    trainer = get_trainer(logger=get_logger())
+def main(_run, _config, _log, _rnd, _seed, watch_model=True):
+    global wandb_logger 
+    wandb_logger = get_logger()
+    trainer = get_trainer(logger=wandb_logger)
     train_loader = get_train_loader()
     val_loader = get_validate_loader()
 
     modul = M(ex)
+    if watch_model:
+        # change log frequency of gradients and parameters (100 steps by default)
+        wandb_logger.watch(modul, log_freq=1000, log="all" )
+
     if pytorch_lightning.__version__ <= "1.5":
         trainer.fit(
             modul,
