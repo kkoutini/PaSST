@@ -38,7 +38,7 @@ get_logger = ex.command(WandbLogger, prefix="wandb")
 
 # define datasets and loaders
 get_train_loader = ex.datasets.training.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn), train=True, batch_size=12,
-                          num_workers=16, shuffle=None, dataset=CMD("/basedataset.get_training_set"),
+                          num_workers=16, shuffle=True, dataset=CMD("/basedataset.get_training_set"),
                           )
 
 get_validate_loader = ex.datasets.valid.iter(DataLoader, static_args=dict(worker_init_fn=worker_init_fn),
