@@ -38,7 +38,7 @@ your own fine-tuning framework, or you need it only for inference, you can find 
 The package follows [HEAR 2021 NeurIPS Challenge](https://neuralaudio.ai/hear2021-results.html) API, and can be installed:
 
 ```shell
-pip install -e 'git+https://github.com/kkoutini/passt_hear21@0.0.17#egg=hear21passt' 
+pip install hear21passt
 ```
 
 This repo is a complete framework for training the models and fine-tuning pre-trained models on Audioset on downstream tasks.
